@@ -31,42 +31,12 @@ rec {
 
     distPhase =
       ''
-        # Generate the manual and the man page.
-        cp ${import ./doc/manual { revision = nixopsSrc.rev; inherit nixpkgs; }} doc/manual/machine-options.xml
-
-        # IMPORTANT: when adding a file here, also populate doc/manual/manual.xml
-        ${pkgs.lib.concatMapStrings (fn: ''
-          cp ${import ./doc/manual/resource.nix { revision = nixopsSrc.rev; module = ./nix + ("/" + fn + ".nix"); inherit nixpkgs; }} doc/manual/${fn}-options.xml
-        '') [ "ebs-volume" "sns-topic" "sqs-queue" "ec2-keypair" "s3-bucket" "iam-role" "ssh-keypair" "ec2-security-group" "elastic-ip"
-              "cloudwatch-log-group" "cloudwatch-log-stream" "elastic-file-system" "elastic-file-system-mount-target"
-              "vpc" "vpc-customer-gateway" "vpc-dhcp-options" "vpc-egress-only-internet-gateway" "vpc-endpoint"
-              "vpc-internet-gateway" "vpc-nat-gateway" "vpc-network-acl" "vpc-network-interface" "vpc-network-interface-attachment"
-              "vpc-route" "vpc-route-table" "vpc-route-table-association" "vpc-subnet"
-              "gce-disk" "gce-image" "gce-forwarding-rule" "gce-http-health-check" "gce-network"
-              "gce-static-ip" "gce-target-pool" "gse-bucket"
-              "datadog-monitor" "datadog-timeboard" "datadog-screenboard"
-              "azure-availability-set" "azure-blob-container" "azure-blob" "azure-directory"
-              "azure-dns-record-set" "azure-dns-zone" "azure-express-route-circuit"
-              "azure-file" "azure-gateway-connection" "azure-load-balancer" "azure-local-network-gateway"
-              "azure-network-security-group" "azure-queue" "azure-reserved-ip-address"
-              "azure-resource-group" "azure-share" "azure-storage" "azure-table"
-              "azure-traffic-manager-profile"
-              "azure-virtual-network" "azure-virtual-network-gateway"]}
-
-        for i in scripts/nixops setup.py doc/manual/manual.xml; do
-          substituteInPlace $i --subst-var-by version ${version}
-        done
-
-        make -C doc/manual install docdir=$out/manual mandir=$TMPDIR/man
-
         releaseName=nixops-$VERSION
         mkdir ../$releaseName
         cp -prd . ../$releaseName
         rm -rf ../$releaseName/.git
         mkdir $out/tarballs
         tar  cvfj $out/tarballs/$releaseName.tar.bz2 -C .. $releaseName
-
-        echo "doc manual $out/manual manual.html" >> $out/nix-support/hydra-build-products
       '';
   };
 
@@ -134,9 +104,6 @@ rec {
         ''
           # Backward compatibility symlink.
           ln -s nixops $out/bin/charon
-
-          make -C doc/manual install \
-            docdir=$out/share/doc/nixops mandir=$out/share/man
 
           mkdir -p $out/share/nix/nixops
           cp -av nix/* $out/share/nix/nixops
