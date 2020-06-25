@@ -5,6 +5,7 @@ import os
 import socket
 import struct
 import subprocess
+import time
 
 from hetzner.robot import Robot
 
@@ -186,10 +187,11 @@ class HetznerState(MachineState):
             # In test mode, the target machine really doesn't go down at all,
             # so only wait for the reboot to finish when deploying real
             # systems.
-            self.log_start("waiting for rescue system...")
+            self.log_start("custom waiting for rescue system...")
             dotlog = lambda: self.log_continue(".")  # NOQA
-            wait_for_tcp_port(ip, 22, open=False, callback=dotlog)
-            self.log_continue("[down]")
+            #wait_for_tcp_port(ip, 22, open=False, callback=dotlog)
+            #self.log_continue("[down]")
+            time.sleep(10)
             wait_for_tcp_port(ip, 22, callback=dotlog)
             self.log_end("[up]")
         self.state = self.RESCUE
